@@ -142,8 +142,8 @@
               ("C-TAB" . 'copilot-accept-completion-by-word)
               ("C-<tab>" . 'copilot-accept-completion-by-word))
   ;; disable logging
-  :config
-  (setq copilot-log-level 'none))
+  :config (setq copilot-log-level 'none))
+
 
 ;; Dashboard
 
@@ -193,7 +193,7 @@
 ;; gptel
 (use-package! gptel
   :config
-  (setq! gptel-api-key (getenv "CHATGPT_API_KEY"))
+  (setq! gptel-api-key (getenv "CHATGPT_API_KEY")))
 
 ;; No New Line
 (setq require-final-newline nil)
@@ -258,7 +258,6 @@
 
 ;; Automatically format Python files on save
 (add-hook 'python-mode-hook 'python-black-on-save-mode)
-
 
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
