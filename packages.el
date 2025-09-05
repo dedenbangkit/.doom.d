@@ -21,9 +21,13 @@
 (package! org-roam)
 (package! jinja2-mode)
 
-;; Github Copilot
+;; Github Copilot (recommended alternative)
 (package! copilot
-  :recipe (:host github :repo "zerolfx/copilot.el" :files ("*.el" "dist")))
+  :recipe (:host github :repo "copilot-emacs/copilot.el" :files ("*.el")))
+
+;; Claude Emacs
+;; (package! claudemacs
+;;   :recipe (:host github :repo "cpoile/claudemacs"))
 
 ;; Gptel
 (package! gptel)

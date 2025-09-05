@@ -34,6 +34,7 @@
 (define-key evil-normal-state-map (kbd "%") 'helm-ext-ff-execute-horizontal-split)
 (define-key evil-normal-state-map (kbd "|") 'helm-ext-ff-execute-vertical-split)
 
+
 ;; Quick View
 (define-key evil-normal-state-map (kbd "ff") #'projectile-find-file)
 (define-key evil-normal-state-map (kbd "fl") #'helm-mini)
@@ -61,6 +62,7 @@
 
 ;; Magit
 (define-key evil-normal-state-map (kbd "M") #'magit)
+;; (define-key evil-normal-state-map (kbd "mb") #'magit-blame)
 
 ;; Global Moving
 (define-key evil-normal-state-map (kbd "(")  'evil-previous-open-paren)
@@ -185,6 +187,15 @@
     map))
 
 ;; (evil-ex-define-cmd "q[uit]" nil)
+
+;; GPTel (ChatGPT) Keybindings
+(define-key evil-normal-state-map (kbd "fc") #'gptel)  ; Start ChatGPT chat
+(define-key evil-normal-state-map (kbd "fC") #'gptel-menu)  ; GPTel menu
+(define-key evil-visual-state-map (kbd "fc") #'gptel-send)  ; Send selected text to ChatGPT
+
+;; Claude Set a big buffer so we can search our history.
+(with-eval-after-load 'eat
+  (setq eat-term-scrollback-size 400000))
 
 ;; custom patch
 (fset 'evil-visual-update-x-selection 'ignore)

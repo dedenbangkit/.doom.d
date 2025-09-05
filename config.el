@@ -132,17 +132,29 @@
  '(org-level-2 ((t (:inherit outline-2 :weight bold :height 1.2))))
  '(org-level-3 ((t (:inherit outline-3 :weight bold :height 1.0)))))
 
-;; Github Copilot
-;; accept completion from copilot and fallback to company
+;; Github Copilot - using copilot-emacs/copilot.el (more stable)
 (use-package! copilot
-  :hook (prog-mode . copilot-mode)
+  :defer t
   :bind (:map copilot-completion-map
               ("<tab>" . 'copilot-accept-completion)
               ("TAB" . 'copilot-accept-completion)
               ("C-TAB" . 'copilot-accept-completion-by-word)
-              ("C-<tab>" . 'copilot-accept-completion-by-word))
-  ;; disable logging
-  :config (setq copilot-log-level 'none))
+              ("C-<tab>" . 'copilot-accept-completion-by-word)
+              ("C-c C-n" . 'copilot-next-completion)
+              ("C-c C-p" . 'copilot-previous-completion))
+  :config
+  ;; Set the path to the locally installed copilot language server
+  (setq copilot-node-executable "node")
+  (setq copilot-language-server-executable
+        (expand-file-name "~/.doom.d/node_modules/.bin/copilot-language-server"))
+
+  ;; Manual activation - run M-x copilot-mode to enable
+  ;; Better integration with company-mode
+  (with-eval-after-load 'company
+    (delq 'company-preview-if-just-one-frontend company-frontends)))
+
+;; Claue Emacs
+;; (use-package! claudemacs)
 
 
 ;; Dashboard
@@ -190,10 +202,17 @@
 ;;
 ;; (doom-dashboard-refresh-buffer)
 
-;; gptel
+;; gptel - ChatGPT Integration
 (use-package! gptel
   :config
-  (setq! gptel-api-key (getenv "CHATGPT_API_KEY")))
+  (setq gptel-api-key (getenv "CHATGPT_API_KEY"))
+  (setq gptel-model "gpt-4o")
+  (setq gptel-default-mode 'org-mode)
+  (setq gptel-stream t)
+
+  ;; Useful settings
+  (setq gptel-temperature 0.7)
+  (setq gptel-max-tokens 4096))
 
 ;; No New Line
 (setq require-final-newline nil)
