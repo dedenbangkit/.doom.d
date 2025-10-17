@@ -38,6 +38,16 @@
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
 
+;; Make line numbers white with darker background (not pure black)
+;; Current line number uses highlighted line styling
+(after! doom-themes
+  (custom-set-faces!
+    '(line-number :foreground "#ffffff" :background "#21242b")
+    '(line-number-current-line :foreground "#282c34" :background "#51afef" :weight bold)))
+
+;; Add visual separator between line numbers and code
+(setq display-line-numbers-width-start t) ;; Reserve space for line numbers
+
 ;; Set Transparency to 70%
 ;; (set-frame-parameter (selected-frame) 'alpha '(90 . 90))
 ;; (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
@@ -56,6 +66,7 @@
 ;; Custom Repos
 (setq my-ideas-dir "~/Repos/akvorepos/ideas/")
 (setq akvo-dir "~/Repos/akvorepos/")
+(setq personal-dir "~/Repos/personal/")
 (setq org-db-file "~/Orgs/database.org")
 (use-package helm
   :commands helm-find-files
@@ -68,6 +79,10 @@
     "Open a Helm buffer to list files in Akvo Repository."
     (interactive)
     (helm-find-files-1 akvo-dir))
+  (defun open-personal-dir ()
+    "Open a Helm buffer to list files in Akvo Repository."
+    (interactive)
+    (helm-find-files-1 personal-dir))
   (defun db-tryout()
     "Database Tryout."
     (interactive)
@@ -79,22 +94,23 @@
         :desc "List of Repositories"
         "f a" #'open-akvo-dir)
   (map! :leader
+        :desc "List of Personal Repositories"
+        "f z" #'open-personal-dir)
+  (map! :leader
         :desc "Database tryout"
         "d d" #'db-tryout)
   )
 
-;; Org Roam
-(use-package org-roam
-  :ensure t
-  :init
-  (setq org-roam-v2-ack t)
-  :custom
-  (org-roam-directory "~/Notes")
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
-         ("C-c n i" . org-roam-node-insert))
-  :config
-  (org-roam-db-autosync-enable))
+;; Org Roam configuration
+(use-package! sqlite3)
+
+(use-package! emacsql-sqlite3
+  :after sqlite3)
+
+(after! org-roam
+  (setq org-roam-directory (expand-file-name "~/Notes"))
+  (setq org-roam-database-connector 'sqlite3)
+  (setq org-roam-db-location (expand-file-name "org-roam.db" org-roam-directory)))
 
 (load "~/.doom.d/custom/org-style.el")
 
@@ -148,10 +164,12 @@
   (setq copilot-language-server-executable
         (expand-file-name "~/.doom.d/node_modules/.bin/copilot-language-server"))
 
-  ;; Manual activation - run M-x copilot-mode to enable
   ;; Better integration with company-mode
   (with-eval-after-load 'company
     (delq 'company-preview-if-just-one-frontend company-frontends)))
+
+;; Enable copilot automatically for all programming modes
+(add-hook 'prog-mode-hook 'copilot-mode)
 
 ;; Claue Emacs
 ;; (use-package! claudemacs)
@@ -180,20 +198,27 @@
 (plist-put (alist-get "Recently opened files" +doom-dashboard-menu-sections nil nil 'equal)
            :icon (nerd-icons-octicon "nf-oct-file_symlink_file" :face 'doom-dashboard-menu-title))
 ;;
-;; Add New Menu
-(add-to-list '+doom-dashboard-menu-sections
-             '("Akvo Repositories"
-               :icon (nerd-icons-octicon "nf-oct-mark_github" :face 'doom-dashboard-menu-title)
-               :when (file-directory-p akvo-dir)
-               :action open-akvo-dir))
-(add-to-list '+doom-dashboard-menu-sections
-             '("Query Database"
-               :icon (nerd-icons-octicon "nf-oct-database" :face 'doom-dashboard-menu-title)
-               :action db-tryout))
-(add-to-list '+doom-dashboard-menu-sections
-             '("Org Room"
-               :icon (nerd-icons-octicon "nf-oct-flame" :face 'doom-dashboard-menu-title)
-               :action org-roam-node-find))
+;; Add New Menu - wait for helm to load so functions are defined
+(after! helm
+  (add-to-list '+doom-dashboard-menu-sections
+               '("Akvo Repositories"
+                 :icon (nerd-icons-octicon "nf-oct-mark_github" :face 'doom-dashboard-menu-title)
+                 :when (file-directory-p akvo-dir)
+                 :action open-akvo-dir))
+  (add-to-list '+doom-dashboard-menu-sections
+               '("Personal Repositories"
+                 :icon (nerd-icons-octicon "nf-oct-feed_merged" :face 'doom-dashboard-menu-title)
+                 :when (file-directory-p personal-dir)
+                 :action open-personal-dir))
+  (add-to-list '+doom-dashboard-menu-sections
+               '("Query Database"
+                 :icon (nerd-icons-octicon "nf-oct-database" :face 'doom-dashboard-menu-title)
+                 :action db-tryout))
+  (add-to-list '+doom-dashboard-menu-sections
+               '("Org Room"
+                 :icon (nerd-icons-octicon "nf-oct-flame" :face 'doom-dashboard-menu-title)
+                 :action org-roam-node-find))
+  (+doom-dashboard-reload))
 ;; (add-to-list '+doom-dashboard-menu-sections
 ;;              '("New Ideas"
 ;;                :icon (all-the-icons-octicon "light-bulb" :face 'doom-dashboard-menu-title)
@@ -277,7 +302,6 @@
 
 ;; Automatically format Python files on save
 (add-hook 'python-mode-hook 'python-black-on-save-mode)
-
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
 ;; `after!' block, otherwise Doom's defaults may override your settings. E.g.

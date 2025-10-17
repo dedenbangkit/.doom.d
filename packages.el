@@ -18,7 +18,8 @@
 (package! org-bullets)
 (package! python-black)
 (package! blacken)
-(package! org-roam)
+(package! sqlite3)
+(package! emacsql-sqlite3)
 (package! jinja2-mode)
 
 ;; Github Copilot (recommended alternative)
