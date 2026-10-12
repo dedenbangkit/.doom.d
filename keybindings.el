@@ -1,203 +1,181 @@
-;;; keybindings.el --- Initialization keybindings for Emacs
-;;; Commentary
+;;; keybindings.el --- Ported from dedenbangkit/.doom.d -*- lexical-binding: t; -*-
+;;; Commentary:
+;; Same keys as ~/.doom.d/keybindings.el on the old machine. helm commands
+;; are swapped for the vertico/consult equivalents. A few extras from the
+;; older ~/.emacs.d are kept where they don't clash (s, f n, f b, Y/P, C-c t).
 ;;; Code:
-;;;
-;;;
+
+(setq which-key-idle-delay 0.01)
+(autoload 'find-file-literally-at-point "ffap" nil t)
 
 ;; Extra Spaces
-(define-key evil-normal-state-map (kbd "SPC j") #'dumb-jump-go)
+(map! :leader :desc "Jump to definition" "j" #'+lookup/definition)
 
 (defun indent-buffer ()
   "Apply indentation rule to the entire buffer."
   (interactive)
   (indent-region (point-min) (point-max)))
 
-(define-key evil-normal-state-map (kbd "Q") 'indent-buffer)
-
 ;; Remap :q to kill buffer
-(map!
- [remap evil-quit] #'kill-current-buffer)
+(map! [remap evil-quit] #'kill-current-buffer)
 
 (defun remove-all-buffer-except-scratch ()
+  "Invalidate projectile caches and kill all buffers except *scratch*, *doom* and *Messages*."
   (interactive)
-  "Invalidate all projectile caches"
   (projectile-invalidate-cache nil)
-  "Kill all buffers except *scratch* and *doom*"
   (dolist (buffer (buffer-list))
-    (unless (or (string= (buffer-name buffer) "*scratch*")
-                (string= (buffer-name buffer) "*doom*")
-                (string= (buffer-name buffer) "*Messages*"))
+    (unless (member (buffer-name buffer) '("*scratch*" "*doom*" "*Messages*"))
       (kill-buffer buffer))))
 
-;; For leader f
-(global-set-key (kbd "<f5>") #'revert-buffer-quick)
-(define-key evil-normal-state-map (kbd "%") 'helm-ext-ff-execute-horizontal-split)
-(define-key evil-normal-state-map (kbd "|") 'helm-ext-ff-execute-vertical-split)
+(defun toggle-transparency ()
+  "Toggle background transparency."
+  (interactive)
+  (set-frame-parameter
+   nil 'alpha-background
+   (if (eql (frame-parameter nil 'alpha-background) 100) 95 100)))
+(add-to-list 'default-frame-alist '(alpha-background . 95))
 
+(map! "<f5>" #'revert-buffer-quick
+      "C-c t" #'toggle-transparency)
 
-;; Quick View
-(define-key evil-normal-state-map (kbd "ff") #'projectile-find-file)
-(define-key evil-normal-state-map (kbd "fl") #'helm-mini)
-(define-key evil-normal-state-map (kbd "fj") #'helm-buffers-list)
-;; Remove all helm buffers
-(define-key evil-normal-state-map (kbd "fJ") 'remove-all-buffer-except-scratch)
-(define-key evil-normal-state-map (kbd "fp") 'find-file-literally-at-point)
-(define-key evil-normal-state-map (kbd "fss") 'find-ag)
-(define-key evil-normal-state-map (kbd "fsd") #'helm-do-ag)
-(define-key evil-normal-state-map (kbd "fsh") #'helm-ag-pop-stack)
-(define-key evil-normal-state-map (kbd "fsp") #'helm-ag-project-root)
-(define-key evil-normal-state-map (kbd "fsb") #'helm-ag-buffers)
+(map!
+ :n "Q" #'indent-buffer
 
-(define-key evil-normal-state-map (kbd "f SPC") #'keyboard-escape-quit)
-(define-key evil-normal-state-map (kbd "f <escape>") #'keyboard-escape-quit)
+ ;; Quick View
+ :n "f f"   #'projectile-find-file
+ :n "f l"   #'consult-buffer                    ; was helm-mini
+ :n "f j"   #'switch-to-buffer                  ; was helm-buffers-list
+ :n "f J"   #'remove-all-buffer-except-scratch
+ :n "f p"   #'find-file-literally-at-point
+ :n "f s s" #'+default/find-file-under-here     ; was find-ag
+ :n "f s d" #'+default/search-cwd               ; was helm-do-ag
+ :n "f s h" #'better-jumper-jump-backward       ; was helm-ag-pop-stack
+ :n "f s p" #'+default/search-project           ; was helm-ag-project-root
+ :n "f s b" #'consult-line-multi                ; was helm-ag-buffers
+ :n "f SPC"      #'keyboard-escape-quit
+ :n "f <escape>" #'keyboard-escape-quit
+ ;; kept from ~/.emacs.d
+ :n "f b"   #'consult-bookmark
+ :n "f n"   #'doom/toggle-line-numbers
+ :n "s"     #'save-buffer
+ :v "Y"     #'clipboard-kill-ring-save
+ :n "P"     #'clipboard-yank
 
-;; Indentation
-;; (define-key evil-visual-state-map (kbd "SPC") #'indent-region)
-;; (defun window-length ()
-;;   (let ((wlen (mapcar #'window-buffer (window-list))))
-;;     (message (type-of wlen))
-;;           ))
+ ;; Magit
+ :n "M" #'magit
 
-;; (window-length)
+ ;; Global Moving
+ :n "(" #'evil-previous-open-paren
+ :n ")" #'evil-next-close-paren
 
-;; Magit
-(define-key evil-normal-state-map (kbd "M") #'magit)
-;; (define-key evil-normal-state-map (kbd "mb") #'magit-blame)
+ ;; Neotree
+ :n "C-n" #'neotree-toggle
 
-;; Global Moving
-(define-key evil-normal-state-map (kbd "(")  'evil-previous-open-paren)
-(define-key evil-normal-state-map (kbd ")")  'evil-next-close-paren)
+ ;; Windows
+ :n "w l" #'windmove-right
+ :n "w h" #'windmove-left
+ :n "w j" #'windmove-down
+ :n "w k" #'windmove-up
+ :n "w d" #'evil-window-delete
+ :n "w w" #'transpose-frame
+ :n "w H" #'evil-window-move-far-left
+ :n "w L" #'evil-window-move-far-right
+ :n "w c" #'global-command-log-mode
+ :n "w SPC" #'clm/toggle-command-log-buffer
+ :n "w +" #'evil-window-increase-height
+ :n "w -" #'evil-window-decrease-height
+ :n "w (" #'evil-window-increase-width
+ :n "w )" #'evil-window-decrease-width
+ :n "%" #'split-window-below
+ :n "|" #'split-window-right
+
+ ;; Modes
+ :n "f m l" #'lisp-mode
+ :n "f m o" #'org-mode
+ :n "f m c" #'clojure-mode
+ :n "f m <escape>" #'keyboard-escape-quit
+
+ ;; Flycheck
+ :n "e r" #'flycheck-list-errors
+
+ ;; Org Roam
+ :n "f a f" #'org-roam-node-find
+ :n "f a a" #'org-roam-buffer-toggle
+ :n "f a n" #'org-roam-node-insert
+
+ ;; Folding
+ :n "f g" #'yafolding-hide-parent-element
+ :n "f H" #'yafolding-toggle-all
+ :n "f h" #'yafolding-toggle-element
+
+ ;; GPTel (ChatGPT)
+ :n "f c" #'gptel         ; Start ChatGPT chat
+ :n "f C" #'gptel-menu    ; GPTel menu
+ :v "f c" #'gptel-send)   ; Send selected text to ChatGPT
 
 ;; Neotree
 (setq neo-smart-open t)
-(define-key evil-normal-state-map (kbd "C-n") #'neotree-toggle)
-(evil-define-key 'normal neotree-mode-map (kbd "I") #'neotree-hidden-file-toggle)
-(evil-define-key 'normal neotree-mode-map (kbd "L") #'neotree-enter)
-(evil-define-key 'normal neotree-mode-map (kbd "R") #'neotree-refresh)
-(evil-define-key 'normal neotree-mode-map (kbd "ma") #'neotree-create-node)
-(evil-define-key 'normal neotree-mode-map (kbd "mx") #'neotree-rename-node)
-(evil-define-key 'normal neotree-mode-map (kbd "mc") #'neotree-copy-node)
-(evil-define-key 'normal neotree-mode-map (kbd "md") #'neotree-delete-node)
-(evil-define-key 'normal neotree-mode-map (kbd "i") #'neotree-hidden-file-toggle)
-
-;; Windows
-(define-key evil-normal-state-map (kbd "wl") #'windmove-right)
-(define-key evil-normal-state-map (kbd "wh") #'windmove-left)
-(define-key evil-normal-state-map (kbd "wj") #'windmove-down)
-(define-key evil-normal-state-map (kbd "wk") #'windmove-up)
-(define-key evil-normal-state-map (kbd "wd") #'evil-window-delete)
-(define-key evil-normal-state-map (kbd "ww") #'transpose-frame)
-(define-key evil-normal-state-map (kbd "wH") #'evil-window-move-far-left)
-(define-key evil-normal-state-map (kbd "wL") #'evil-window-move-far-right)
-(define-key evil-normal-state-map (kbd "wc") #'global-command-log-mode)
-(define-key evil-normal-state-map (kbd "w SPC") #'clm/toggle-command-log-buffer)
-(define-key evil-normal-state-map (kbd "w+") 'evil-window-increase-height)
-(define-key evil-normal-state-map (kbd "w-") 'evil-window-decrease-height)
-(define-key evil-normal-state-map (kbd "w(") 'evil-window-increase-width)
-(define-key evil-normal-state-map (kbd "w)") 'evil-window-decrease-width)
-(define-key evil-normal-state-map (kbd "%") #'split-window-below)
-(define-key evil-normal-state-map (kbd "|") #'split-window-right)
-
-;; Modes
-(define-prefix-command 'modes)
-(define-key evil-normal-state-map (kbd "fm") #'modes)
-(define-key evil-normal-state-map (kbd "fml") #'lisp-mode)
-(define-key evil-normal-state-map (kbd "fmo") #'org-mode)
-(define-key evil-normal-state-map (kbd "fmc") #'clojure-mode)
-(define-key evil-normal-state-map (kbd "fm <escape>") #'keyboard-escape-quit)
-
-;; Flycheck
-(define-key evil-normal-state-map (kbd "er") 'flycheck-list-errors)
+(map! :after neotree
+      :map neotree-mode-map
+      :n "I"  #'neotree-hidden-file-toggle
+      :n "i"  #'neotree-hidden-file-toggle
+      :n "L"  #'neotree-enter
+      :n "R"  #'neotree-refresh
+      :n "ma" #'neotree-create-node
+      :n "mx" #'neotree-rename-node
+      :n "mc" #'neotree-copy-node
+      :n "md" #'neotree-delete-node)
 
 ;; Lisp
-(add-hook
- 'emacs-lisp-mode-hook
- #'(lambda ()
-     (define-key evil-normal-state-map (kbd "eb") 'eval-buffer)
-     (define-key evil-normal-state-map (kbd "eb") 'eval-buffer)))
+(map! :map emacs-lisp-mode-map
+      :n "e b" #'eval-buffer)
 
 ;; Clojure Cider
-(add-hook
- 'clojure-mode-hook
- #'(lambda ()
-     (define-key evil-normal-state-map (kbd "ec") 'cider-connect)
-     (define-key evil-normal-state-map (kbd "eb") 'cider-eval-buffer)
-     (define-key evil-normal-state-map (kbd "ee") 'cider-eval-list-at-point)
-     (define-key evil-normal-state-map (kbd "ew") 'cider-repl-clear-buffer)
-     (define-key evil-normal-state-map (kbd "ej") 'cider-find-var)
-     (define-key evil-normal-state-map (kbd "ek") 'cider-pop-back)
-     (define-key evil-normal-state-map (kbd "et") 'cider-test-run-test)
-     (define-key evil-normal-state-map (kbd "eq") 'cider-quit)
-     (define-key evil-normal-state-map (kbd "ed") 'cider-debug-defun-at-point)
-     (define-key evil-normal-state-map (kbd "e <escape>") 'keyboard-escape-quit)))
+(map! :after clojure-mode
+      :map clojure-mode-map
+      :n "e c" #'cider-connect
+      :n "e b" #'cider-eval-buffer
+      :n "e e" #'cider-eval-list-at-point
+      :n "e w" #'cider-repl-clear-buffer
+      :n "e j" #'cider-find-var
+      :n "e k" #'cider-pop-back
+      :n "e t" #'cider-test-run-test
+      :n "e q" #'cider-quit
+      :n "e d" #'cider-debug-defun-at-point
+      :n "e <escape>" #'keyboard-escape-quit)
 
 ;; Org Custom Evil
-(defun my-org-local-keybindings ()
-  "Define local keybindings for Org mode."
-  (define-key evil-normal-state-local-map (kbd "S-<tab>") 'org-cycle-hide-drawers))
-
-;; Org Roam
-(define-key evil-normal-state-map (kbd "faf") #'org-roam-node-find)
-(define-key evil-normal-state-map (kbd "faa") #'org-roam-buffer-toggle)
-(define-key evil-normal-state-map (kbd "fan") #'org-roam-node-insert)
-
-
 (defun my-org-global-show-all ()
   "Show all headings in all Org mode buffers."
   (interactive)
-  (add-hook 'org-mode-hook #'my-org-local-keybindings)
-  (org-show-all))
+  (org-fold-show-all))
 
-(defun my-org-hide-all ()
-  "Hide all headings and remove local keybindings in Org mode."
-  (interactive)
-  (remove-hook 'org-mode-hook #'my-org-local-keybindings)
-  (org-hide-all)
-  (define-key evil-normal-state-local-map (kbd "S-<tab>") 'global-org-show-all))
+(map! :after evil-org
+      :map evil-org-mode-map
+      :n "S-<tab>" #'my-org-global-show-all
+      :n "<backtab>" #'my-org-global-show-all
+      :n "f d" #'org-time-stamp
+      :n "f e" #'org-table-export
+      :n "L"   #'org-cycle
+      :n "R"   #'org-export-dispatch
+      :n ">"   #'org-table-wrap-region
+      :n "+"   #'org-toggle-checkbox
+      :n "#"   #'org-insert-structure-template
+      :n "-"   #'org-ctrl-c-minus)
 
-(add-hook
- 'org-mode-hook
- #'(lambda ()
-     (define-key evil-normal-state-map (kbd "S-<tab>") 'my-org-global-show-all)
-     (define-key evil-normal-state-map (kbd "fd") 'org-time-stamp)
-     (define-key evil-normal-state-map (kbd "fe") 'org-table-export)
-     (define-key evil-normal-state-map (kbd "L") 'org-cycle)
-     (define-key evil-normal-state-map (kbd "R") 'org-export-dispatch)
-     (define-key evil-normal-state-map (kbd ">") 'org-table-wrap-region)
-     (define-key evil-normal-state-map (kbd "+") 'org-toggle-checkbox)
-     (define-key evil-normal-state-map (kbd "#") 'org-insert-structure-template)
-     (define-key evil-normal-state-map (kbd "-") 'org-ctrl-c-minus)))
-
-;; Python Custom
-(add-hook
- 'python-mode-hook
- #'(lambda ()
-     '(jedi-mode)
-     (define-key evil-normal-state-map (kbd "ef") 'lsp-goto-type-definition)
-     (define-key evil-normal-state-map (kbd "ej") 'jedi:goto-definition)
-     (define-key evil-normal-state-map (kbd "ee") 'elpy-yapf-fix-code)
-     (define-key evil-normal-state-map (kbd "ed") 'jedi:show-doc)))
-
-;; Folding
-(defvar yafolding-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key evil-normal-state-map (kbd "fg") #'yafolding-hide-parent-element)
-    (define-key evil-normal-state-map (kbd "fH") #'yafolding-toggle-all)
-    (define-key evil-normal-state-map (kbd "fh") #'yafolding-toggle-element)
-    map))
-
-;; (evil-ex-define-cmd "q[uit]" nil)
-
-;; GPTel (ChatGPT) Keybindings
-(define-key evil-normal-state-map (kbd "fc") #'gptel)  ; Start ChatGPT chat
-(define-key evil-normal-state-map (kbd "fC") #'gptel-menu)  ; GPTel menu
-(define-key evil-visual-state-map (kbd "fc") #'gptel-send)  ; Send selected text to ChatGPT
+;; Python Custom (jedi/elpy replaced by lsp + Doom lookup/format)
+(map! :after python
+      :map (python-mode-map python-ts-mode-map)
+      :n "e f" #'lsp-goto-type-definition
+      :n "e j" #'+lookup/definition
+      :n "e e" #'+format/buffer
+      :n "e d" #'+lookup/documentation)
 
 ;; Claude Set a big buffer so we can search our history.
 (with-eval-after-load 'eat
   (setq eat-term-scrollback-size 400000))
 
-;; custom patch
+;; custom patch: visual selection doesn't overwrite the clipboard
 (fset 'evil-visual-update-x-selection 'ignore)
 
 ;;; keybindings.el ends here

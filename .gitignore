@@ -1,1 +1,3 @@
 node_modules
+# reveal.js is vendored locally for org-reveal (28MB), not tracked
+custom/reveal.js/

@@ -15,14 +15,19 @@
 ;; - `doom-variable-pitch-font' -- a non-monospace font (where applicable)
 ;; - `doom-big-font' -- used for `doom-big-font-mode'; use this for
 ;;   presentations or streaming.
-;; - `doom-unicode-font' -- for unicode glyphs
+;; - `doom-symbol-font' -- for symbols
 ;; - `doom-serif-font' -- for the `fixed-pitch-serif' face
 ;;
 ;; See 'C-h v doom-font' for documentation and more examples of what they
 ;; accept. For example:
 ;;
-(setq doom-font (font-spec :family "JetBrainsMono Nerd Font" :size 12 :weight 'normal)
-      doom-variable-pitch-font (font-spec :family "JetBrainsMono Nerd Font" :size 12))
+;;(setq doom-font (font-spec :family "Fira Code" :size 12 :weight 'semi-light)
+;;      doom-variable-pitch-font (font-spec :family "Fira Sans" :size 13))
+;;
+;; Same font as the rest of the Sway setup (foot, waybar). 14px, not 10pt:
+;; Emacs rounds 10pt to 13px, which looks squat next to foot (≈13.3px).
+(setq doom-font (font-spec :family "JetBrainsMono Nerd Font" :size 14)
+      doom-variable-pitch-font (font-spec :family "JetBrainsMono Nerd Font" :size 14))
 ;;
 ;; If you or Emacs can't find your font, use 'M-x describe-font' to look them
 ;; up, `M-x eval-region' to execute elisp code, and 'M-x doom/reload-font' to
@@ -33,6 +38,13 @@
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
 (setq doom-theme 'doom-one)
+;; Specify both a dark and light theme, like so and Doom will choose which one
+;; to load based on your system light/dark setting:
+;;
+;;   (setq doom-theme '(doom-one   . doom-one-light))   ; (DARK . LIGHT)
+;;
+;; If you want more pro-active theme switching based on OS light/dark mode, look
+;; up the `auto-dark' package.
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -40,292 +52,40 @@
 
 ;; Make line numbers white with darker background (not pure black)
 ;; Current line number uses highlighted line styling
-(after! doom-themes
-  (custom-set-faces!
-    '(line-number :foreground "#ffffff" :background "#21242b")
-    '(line-number-current-line :foreground "#282c34" :background "#51afef" :weight bold)))
+(custom-set-faces!
+  '(line-number :foreground "#ffffff" :background "#21242b")
+  '(line-number-current-line :foreground "#282c34" :background "#51afef" :weight bold))
 
 ;; Add visual separator between line numbers and code
-(setq display-line-numbers-width-start t) ;; Reserve space for line numbers
-
-;; Set Transparency to 70%
-;; (set-frame-parameter (selected-frame) 'alpha '(90 . 90))
-;; (add-to-list 'default-frame-alist '(alpha . (90 . 90)))
-
-;; Set background color to #2E3440
-;; (custom-set-faces!
-;;  '(default :background "#2E3440"))
+(setq display-line-numbers-width-start t)
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/Orgs/")
 
-;; Splash Screen
-(setq fancy-splash-image (concat doom-user-dir "splash.png"))
-
-;; Custom Repos
-(setq my-ideas-dir "~/Repos/akvorepos/ideas/")
-(setq akvo-dir "~/Repos/akvorepos/")
-(setq personal-dir "~/Repos/personal/")
-(setq org-db-file "~/Orgs/database.org")
-(use-package helm
-  :commands helm-find-files
-  :config
-  (defun open-my-ideas ()
-    "Write New Org Ideas."
-    (interactive)
-    (helm-find-files-1 my-ideas-dir))
-  (defun open-akvo-dir ()
-    "Open a Helm buffer to list files in Akvo Repository."
-    (interactive)
-    (helm-find-files-1 akvo-dir))
-  (defun open-personal-dir ()
-    "Open a Helm buffer to list files in Akvo Repository."
-    (interactive)
-    (helm-find-files-1 personal-dir))
-  (defun db-tryout()
-    "Database Tryout."
-    (interactive)
-    (find-file "~/Orgs/database.org"))
-  (map! :leader
-        :desc "List of ideas"
-        "f b" #'open-my-ideas)
-  (map! :leader
-        :desc "List of Repositories"
-        "f a" #'open-akvo-dir)
-  (map! :leader
-        :desc "List of Personal Repositories"
-        "f z" #'open-personal-dir)
-  (map! :leader
-        :desc "Database tryout"
-        "d d" #'db-tryout)
-  )
-
-;; Org Roam configuration
-(use-package! sqlite3)
-
-(use-package! emacsql-sqlite3
-  :after sqlite3)
-
-(after! org-roam
-  (setq org-roam-directory (expand-file-name "~/Notes"))
-  (setq org-roam-database-connector 'sqlite3)
-  (setq org-roam-db-location (expand-file-name "org-roam.db" org-roam-directory)))
-
-(load "~/.doom.d/custom/org-style.el")
-
-;; Command Log Mode
-(load "~/.doom.d/custom/command-log-mode.el")
-(require 'command-log-mode)
-(add-hook 'LaTeX-mode-hook 'command-log-mode)
-
-;; Keybindings
-(load "~/.doom.d/keybindings.el")
-
-;; Ensure EPG knows the location of the GPG executable
-(setq epg-gpg-program "/usr/bin/gpg")
-
-;; Path to your GPG keyring, modify as necessary
-(setq epg-gpg-home-directory "/home/dedenbangkit/.gnupg")
-
-;; Magit configuration to sign commits
-(after! magit
-  (setq magit-commit-arguments '("--signoff"))
-  )
-
-;; Org-reveal
-(after! org
-  (load-library "ox-reveal")
-  (setq org-reveal-root "~/.doom.d/custom/reveal.js"))
-
-;; Org-Bullet
-(add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-(custom-set-faces
- '(link ((t (:underline nil :weight bold :foreground "#ADD8E6"))))
- '(org-link ((t (:underline nil :weight bold :foreground "#ADD8E6"))))
- '(org-code ((t (:foreground "red"))))
- '(org-level-1 ((t (:inherit outline-1 :weight bold :height 1.5))))
- '(org-level-2 ((t (:inherit outline-2 :weight bold :height 1.2))))
- '(org-level-3 ((t (:inherit outline-3 :weight bold :height 1.0)))))
-
-;; Github Copilot - using copilot-emacs/copilot.el (more stable)
-(use-package! copilot
-  :defer t
-  :bind (:map copilot-completion-map
-              ("<tab>" . 'copilot-accept-completion)
-              ("TAB" . 'copilot-accept-completion)
-              ("C-TAB" . 'copilot-accept-completion-by-word)
-              ("C-<tab>" . 'copilot-accept-completion-by-word)
-              ("C-c C-n" . 'copilot-next-completion)
-              ("C-c C-p" . 'copilot-previous-completion))
-  :config
-  ;; Set the path to the locally installed copilot language server
-  (setq copilot-node-executable "node")
-  (setq copilot-language-server-executable
-        (expand-file-name "~/.doom.d/node_modules/.bin/copilot-language-server"))
-
-  ;; Better integration with company-mode
-  (with-eval-after-load 'company
-    (delq 'company-preview-if-just-one-frontend company-frontends)))
-
-;; Enable copilot automatically for all programming modes
-(add-hook 'prog-mode-hook 'copilot-mode)
-
-;; Claue Emacs
-;; (use-package! claudemacs)
-
-
-;; Dashboard
-
-;; Change private conf icon
-
-;; Disable recently opened files
-(setq +doom-dashboard-recent-files nil)
-(setq projectile-enable-caching nil)
-
-;; Delete the dashboard menu
-(assoc-delete-all "Reload last session" +doom-dashboard-menu-sections)
-(assoc-delete-all "Open org-agenda" +doom-dashboard-menu-sections)
-(assoc-delete-all "Recently opened files" +doom-dashboard-menu-sections)
-(assoc-delete-all "Open documentation" +doom-dashboard-menu-sections)
-(assoc-delete-all "Jump to bookmark" +doom-dashboard-menu-sections)
-
-;; replace open project icon
-(plist-put (alist-get "Open project" +doom-dashboard-menu-sections nil nil 'equal)
-           :icon (nerd-icons-octicon "nf-oct-file_directory" :face 'doom-dashboard-menu-title))
-(plist-put (alist-get "Open private configuration" +doom-dashboard-menu-sections nil nil 'equal)
-           :icon (nerd-icons-octicon "nf-oct-key" :face 'doom-dashboard-menu-title))
-(plist-put (alist-get "Recently opened files" +doom-dashboard-menu-sections nil nil 'equal)
-           :icon (nerd-icons-octicon "nf-oct-file_symlink_file" :face 'doom-dashboard-menu-title))
-;;
-;; Add New Menu - wait for helm to load so functions are defined
-(after! helm
-  (add-to-list '+doom-dashboard-menu-sections
-               '("Akvo Repositories"
-                 :icon (nerd-icons-octicon "nf-oct-mark_github" :face 'doom-dashboard-menu-title)
-                 :when (file-directory-p akvo-dir)
-                 :action open-akvo-dir))
-  (add-to-list '+doom-dashboard-menu-sections
-               '("Personal Repositories"
-                 :icon (nerd-icons-octicon "nf-oct-feed_merged" :face 'doom-dashboard-menu-title)
-                 :when (file-directory-p personal-dir)
-                 :action open-personal-dir))
-  (add-to-list '+doom-dashboard-menu-sections
-               '("Query Database"
-                 :icon (nerd-icons-octicon "nf-oct-database" :face 'doom-dashboard-menu-title)
-                 :action db-tryout))
-  (add-to-list '+doom-dashboard-menu-sections
-               '("Org Room"
-                 :icon (nerd-icons-octicon "nf-oct-flame" :face 'doom-dashboard-menu-title)
-                 :action org-roam-node-find))
-  (+doom-dashboard-reload))
-;; (add-to-list '+doom-dashboard-menu-sections
-;;              '("New Ideas"
-;;                :icon (all-the-icons-octicon "light-bulb" :face 'doom-dashboard-menu-title)
-;;                :when (file-directory-p my-ideas-dir)
-;;                :action open-my-ideas))
-;;
-;; (doom-dashboard-refresh-buffer)
-
-;; gptel - ChatGPT Integration
-(use-package! gptel
-  :config
-  (setq gptel-api-key (getenv "CHATGPT_API_KEY"))
-  (setq gptel-model "gpt-4o")
-  (setq gptel-default-mode 'org-mode)
-  (setq gptel-stream t)
-
-  ;; Useful settings
-  (setq gptel-temperature 0.7)
-  (setq gptel-max-tokens 4096))
-
-;; No New Line
-(setq require-final-newline nil)
-
-;; Autofix Python Auto Indentation with flake8
-;; Max line length 79
-;; (setq-hook! 'python-mode-hook +format-with-lsp nil)
-;; (setq-hook! 'python-mode-hook +format-with-pyright-args '("--line-length" "79"))
-;; (setq-hook! 'python-mode-hook +format-with-pyright nil)
-;; (setq-hook! 'python-mode-hook +format-with-black nil)
-;; (setq-hook! 'python-mode-hook +format-with-autopep8 nill)
-;; (setq-hook! 'python-mode-hook +format-with-black-args '("-l" "79"))
-;; (setq-hook! 'python-mode-hook
-;;   flycheck-flake8-maximum-line-length 79)
-;; (setq-hook! 'python-mode-hook +format-with-yapf-args '("--style" "{based_on_style: pep8, column_limit: 79}"))
-;; (setq-hook! 'python-mode-hook +format-with-yapf t)
-;; (use-package! blacken
-;;   :after python
-;;   :hook (python-mode . blacken-mode)
-;;   :config
-;;   (setq blacken-line-length 79))
-
-;; Org Javascript
-;; Ensure Org Babel is loaded before modifying its variables
-(with-eval-after-load 'org
-  ;; Require ob-js for JavaScript support
-  (require 'ob-js)
-
-  ;; Add JavaScript support to org-babel-load-languages
-  (add-to-list 'org-babel-load-languages '(js . t))
-
-  ;; Load the new configuration
-  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)
-
-  ;; Add JavaScript support to org-babel-tangle-lang-exts
-  (add-to-list 'org-babel-tangle-lang-exts '("js" . "js"))
-
-  ;; Add
-  (setq org-babel-python-command "/usr/bin/python"))
-
-;; Remove last blank lines on save
-(add-hook 'before-save-hook 'delete-trailing-whitespace)
-(add-hook 'before-save-hook 'whitespace-cleanup)
-;; Enable autosave for python
-(setq auto-save-default t
-      auto-save-visited-interval 20) ; Autosave every 20 seconds
-
-;; Use python-black for Python code formatting
-(use-package! python-black
-  :demand t
-  :after python
-  :hook (python-mode . python-black-on-save-mode)
-  :config
-  (setq python-black-command "black"
-        python-black-extra-args '("--line-length" "79")))
-
-;; Enable jinja2-mode for files with .jinja, .j2, or similar extensions
-(use-package! jinja2-mode
-  :mode ("\\.jinja\\'" "\\.j2\\'" "\\.jinja2\\'" "\\.html\\'")
-  :config
-  (add-hook 'jinja2-mode-hook #'lsp)) ; Optional: Enable LSP if you use it
-
-;; Automatically format Python files on save
-(add-hook 'python-mode-hook 'python-black-on-save-mode)
 
 ;; Whenever you reconfigure a package, make sure to wrap your config in an
-;; `after!' block, otherwise Doom's defaults may override your settings. E.g.
+;; `with-eval-after-load' block, otherwise Doom's defaults may override your
+;; settings. E.g.
 ;;
-;;   (after! PACKAGE
+;;   (with-eval-after-load 'PACKAGE
 ;;     (setq x y))
 ;;
 ;; The exceptions to this rule:
 ;;
 ;;   - Setting file/directory variables (like `org-directory')
 ;;   - Setting variables which explicitly tell you to set them before their
-;;     package is loaded (see 'C-h v VARIABLE' to look up their documentation).
+;;     package is loaded (see 'C-h v VARIABLE' to look them up).
 ;;   - Setting doom variables (which start with 'doom-' or '+').
 ;;
 ;; Here are some additional functions/macros that will help you configure Doom.
 ;;
 ;; - `load!' for loading external *.el files relative to this one
-;; - `use-package!' for configuring packages
-;; - `after!' for running code after a package has loaded
 ;; - `add-load-path!' for adding directories to the `load-path', relative to
 ;;   this file. Emacs searches the `load-path' when you load packages with
 ;;   `require' or `use-package'.
 ;; - `map!' for binding new keys
-
+;;
 ;; To get information about any of these functions/macros, move the cursor over
 ;; the highlighted symbol at press 'K' (non-evil users must press 'C-c c k').
 ;; This will open documentation for it, including demos of how they are used.
@@ -334,3 +94,101 @@
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
+(load! "keybindings")
+(load! "dashboard")
+
+;; ---------------------------------------------------------------------------
+;; Ported from dedenbangkit/.doom.d config.el
+;; ---------------------------------------------------------------------------
+
+;; Org styling (was custom/org-style.el + custom.el)
+(custom-set-faces!
+  '(link :underline nil :weight bold :foreground "#ADD8E6")
+  '(org-link :underline nil :weight bold :foreground "#ADD8E6")
+  '(org-code :foreground "red")
+  '(org-level-1 :inherit outline-1 :weight bold :height 1.5)
+  '(org-level-2 :inherit outline-2 :weight bold :height 1.2)
+  '(org-level-3 :inherit outline-3 :weight bold :height 1.0))
+(add-hook 'org-mode-hook #'org-bullets-mode)
+
+;; Command Log Mode
+(use-package! command-log-mode
+  :commands (global-command-log-mode clm/toggle-command-log-buffer))
+(add-hook 'LaTeX-mode-hook #'command-log-mode)
+
+;; Ensure EPG knows the location of the GPG executable
+(setq epg-gpg-program "/usr/bin/gpg"
+      epg-gpg-home-directory (expand-file-name "~/.gnupg"))
+
+;; Magit: sign off commits by default
+(after! transient
+  (unless (assq 'magit-commit transient-values)
+    (push '(magit-commit "--signoff") transient-values)))
+
+;; Org-reveal (reveal.js copied from the old ~/.doom.d/custom/reveal.js)
+(after! org
+  (require 'ox-reveal)
+  (setq org-reveal-root (concat "file://" (expand-file-name "custom/reveal.js" doom-user-dir))))
+
+;; Github Copilot - copilot-emacs/copilot.el
+;; Server: npm install -g @github/copilot-language-server (in ~/.npm-global)
+(use-package! copilot
+  :hook (prog-mode . copilot-mode)
+  :bind (:map copilot-completion-map
+              ("<tab>" . copilot-accept-completion)
+              ("TAB" . copilot-accept-completion)
+              ("C-TAB" . copilot-accept-completion-by-word)
+              ("C-<tab>" . copilot-accept-completion-by-word)
+              ("C-c C-n" . copilot-next-completion)
+              ("C-c C-p" . copilot-previous-completion))
+  :config
+  (setq copilot-node-executable "node"
+        copilot-server-executable (expand-file-name "~/.npm-global/bin/copilot-language-server"))
+  (add-to-list 'warning-suppress-types '(copilot copilot-no-mode-indent)))
+
+;; gptel - ChatGPT Integration (key from $CHATGPT_API_KEY)
+(use-package! gptel
+  :defer t
+  :config
+  (setq gptel-api-key (getenv "CHATGPT_API_KEY")
+        gptel-model 'gpt-4o
+        gptel-default-mode 'org-mode
+        gptel-stream t
+        gptel-temperature 0.7
+        gptel-max-tokens 4096))
+
+;; No New Line
+(setq require-final-newline nil)
+
+;; Org Javascript
+(after! org
+  (require 'ob-js)
+  (add-to-list 'org-babel-load-languages '(js . t))
+  (org-babel-do-load-languages 'org-babel-load-languages org-babel-load-languages)
+  (add-to-list 'org-babel-tangle-lang-exts '("js" . "js"))
+  (setq org-babel-python-command "python3"))
+
+;; Remove last blank lines on save
+(add-hook 'before-save-hook #'delete-trailing-whitespace)
+(add-hook 'before-save-hook #'whitespace-cleanup)
+;; Enable autosave
+(setq auto-save-default t
+      auto-save-visited-interval 20) ; Autosave every 20 seconds
+
+;; Use python-black for Python code formatting (needs `black')
+(use-package! python-black
+  :after python
+  :hook ((python-mode python-ts-mode) . python-black-on-save-mode)
+  :config
+  (setq python-black-command "black"
+        python-black-extra-args '("--line-length" "79")))
+
+;; Enable jinja2-mode for files with .jinja, .j2, or similar extensions
+(use-package! jinja2-mode
+  :mode ("\\.jinja\\'" "\\.j2\\'" "\\.jinja2\\'" "\\.html\\'")
+  :config
+  (add-hook 'jinja2-mode-hook #'lsp-deferred))
+
+;; Folding (f g / f h / f H): yafolding has no autoloads, so declare them
+(use-package! yafolding
+  :commands (yafolding-hide-parent-element yafolding-toggle-all yafolding-toggle-element))
