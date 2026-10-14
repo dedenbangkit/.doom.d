@@ -192,3 +192,8 @@
 ;; Folding (f g / f h / f H): yafolding has no autoloads, so declare them
 (use-package! yafolding
   :commands (yafolding-hide-parent-element yafolding-toggle-all yafolding-toggle-element))
+
+;; Markdown live preview (SPC m p): render locally with go-grip, open in the browser
+(after! grip-mode
+  (setq grip-command 'go-grip
+        grip-preview-use-webkit nil))

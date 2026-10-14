@@ -19,6 +19,7 @@ Emacs daemon.
 - **Copilot**: `npm install -g @github/copilot-language-server` (expects it in `~/.npm-global/bin`), then `M-x copilot-login`.
 - **gptel**: reads the API key from `$CHATGPT_API_KEY`.
 - **org-reveal**: put [reveal.js](https://github.com/hakimel/reveal.js) in `custom/reveal.js/` (gitignored).
+- **Markdown preview**: `go install github.com/chrishrb/go-grip@latest` (renders locally, no GitHub API), then `SPC m p` in a markdown buffer.
 - **Font**: JetBrainsMono Nerd Font.
 
 ## Files
@@ -50,3 +51,4 @@ Emacs daemon.
 | `f a f` | Find org-roam note |
 | `e r` | Flycheck errors |
 | `F5` / `C-c t` | Revert buffer / toggle transparency |
+| `SPC m p` | Markdown live preview in browser (markdown buffers) |
