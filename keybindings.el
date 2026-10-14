@@ -33,7 +33,7 @@
   (set-frame-parameter
    nil 'alpha-background
    (if (eql (frame-parameter nil 'alpha-background) 100) 95 100)))
-(add-to-list 'default-frame-alist '(alpha-background . 95))
+(add-to-list 'default-frame-alist '(alpha-background . 100))
 
 (map! "<f5>" #'revert-buffer-quick
       "C-c t" #'toggle-transparency)
